@@ -61,17 +61,8 @@ fn parse_input(lines: &std::vec::Vec<String>) -> Result<(Stacks, Moves), Box<dyn
 }
 
 fn move_crates(stacks: &mut Stacks, m: &Move, rev_moves: bool) {
-    println!("=================");
-    println!("Move {} from {} to {}", m.count, m.from, m.to);
-    print_stacks(&stacks);
-
-    assert!(m.from < stacks.len());
-    assert!(m.to < stacks.len());
-
     let base_from = {
         let st_from: &mut std::vec::Vec<char> = &mut stacks[m.from];
-        assert!(m.count <= st_from.len());
-
         st_from.len() - m.count
     };
 
@@ -86,9 +77,6 @@ fn move_crates(stacks: &mut Stacks, m: &Move, rev_moves: bool) {
     }
 
     stacks[m.from].truncate(base_from);
-    println!("-----------");
-    print_stacks(&stacks);
-    println!("");
 }
 
 pub fn print_stacks(stacks: &Stacks) {
