@@ -1,46 +1,35 @@
 use crate::common::read_file;
 
-fn find_first_dup(line: &[u8]) -> Option<u8> {
-    for i in 0..(line.len()-1) {
-        if line[i+1..].contains(&line[i]) {
-            return Some(line[i])
+fn find_last_dup_pair_idx(line: &[u8]) -> Option<usize> {
+    let mut seen: u32 = 0;
+
+    for i in (0..line.len()).rev() {
+        let mask = 1 << line[i] - b'a';
+        if (seen & mask) != 0 {
+            return Some(i);
         }
+        seen |= mask;
     }
 
     None
 }
 
 fn find_first_marker(line: &str, marker_len: usize) -> Result<usize, Box<dyn std::error::Error>> {
-    let line = line.as_bytes();
-    let mut ring_buffer = vec![0 as u8; marker_len];
-    let mut idx = 0;
-
-    let mut iter = line.iter();
-    for x in ring_buffer.iter_mut() {
-        *x = match iter.next() {
-            None => return Err(Box::from("Not enough characters")),
-            Some(v) => *v
-        };
+    if line.len() < marker_len {
+        return Err(Box::from("Not enough characters"))
     }
 
+    let line = line.as_bytes();
     let mut count = marker_len;
-    let mut last_dup = match find_first_dup(&ring_buffer) {
-        None => return Ok(count),
-        Some(d) => d
-    };
-
-    for x in iter {
-        let dropping = ring_buffer[idx];
-        ring_buffer[idx] = *x;
-        count += 1;
-
-        if dropping == last_dup {
-            last_dup = match find_first_dup(&ring_buffer) {
-                None => return Ok(count),
-                Some(d) => d
-            };
-        }
-        idx = (idx + 1) % marker_len;
+    let mut iter = 0..line.len() - marker_len;
+    while let Some(idx) = iter.next() {
+        match find_last_dup_pair_idx(&line[idx..idx + marker_len]) {
+            None => return Ok(count),
+            Some(d) => {
+                if d > 0 { iter.nth(d - 1); } // next will be called in while loop so -1
+                count += d + 1; // d is 0-index so + 1
+            }
+        };
     }
 
     Err(Box::from("Market not found"))
@@ -66,12 +55,12 @@ mod test {
 
     #[test]
     fn test_has_duplicates() {
-        assert_eq!(find_first_dup(b"mjqj").unwrap(), b'j');
-        assert_eq!(find_first_dup(b"mqjj").unwrap(), b'j');
-        assert_eq!(find_first_dup(b"jaqj").unwrap(), b'j');
+        assert_eq!(find_last_dup_pair_idx(b"mjqj").unwrap(), 1);
+        assert_eq!(find_last_dup_pair_idx(b"mqjj").unwrap(), 2);
+        assert_eq!(find_last_dup_pair_idx(b"jaqj").unwrap(), 0);
 
-        assert_eq!(find_first_dup(b"mjqa"), None);
-        assert_eq!(find_first_dup(b"abc"), None);
+        assert_eq!(find_last_dup_pair_idx(b"mjqa"), None);
+        assert_eq!(find_last_dup_pair_idx(b"abc"), None);
     }
 
     #[test]
