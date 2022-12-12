@@ -9,6 +9,7 @@ mod day8;
 mod day9;
 mod day10;
 mod day11;
+mod day12;
 mod common;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,6 +38,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "--day10-part2" => day10::run_part2(),
         "--day11-part1" => day11::run_part1(),
         "--day11-part2" => day11::run_part2(),
+        "--day12-part1" => day12::run_part1(),
+        "--day12-part2" => day12::run_part2(),
         _ => {
             eprintln!("Unknown part");
             Ok(())
